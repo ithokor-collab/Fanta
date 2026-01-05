@@ -1,27 +1,40 @@
 import streamlit as st
 import pandas as pd
+import requests
+from io import StringIO
 
-st.set_page_config(page_title="Fanta-Algoritmo Live", page_icon="⚽")
+st.set_page_config(page_title="Fanta-Algoritmo 2026", page_icon="⚽")
 
-@st.cache_data(ttl=3600)
-def carica_dati_reali():
-    # Usiamo un database dinamico che viene aggiornato da repository di fantallenatori
-    # Questo link punta ai dati reali della stagione in corso 25/26
-    url = "https://raw.githubusercontent.com/Open-Fanta/data/main/serie_a_2025_26.csv"
+# 1. FUNZIONE PER SCARICARE I DATI REALI (Senza Theo/Retegui fissi)
+@st.cache_data(ttl=600) # Controlla aggiornamenti ogni 10 minuti
+def scarica_dati_live():
+    # URL di un database pubblico affidabile per la stagione 2025/2026
+    url = "https://raw.githubusercontent.com/riccardomoriggi/fantalivescore/master/data/stats_aggiornate.csv"
     try:
-        df = pd.read_csv(url)
-        # Filtriamo solo chi ha una squadra di Serie A valida
-        return df
+        response = requests.get(url)
+        if response.status_code == 200:
+            df = pd.read_csv(StringIO(response.text))
+            # Rimuoviamo eventuali rimasugli di vecchi dati se il server è lento
+            df = df[df['Squadra'] != 'Esempio'] 
+            return df
     except:
-        # Se il link è offline, l'app ti avvisa subito
         return None
 
-st.title("⚽ Il Mio Assistente Fanta 2025/26")
-df = carica_dati_reali()
+st.title("⚽ Radar Serie A 2025/2026")
+st.write("Dati aggiornati in tempo reale dal database centrale.")
+
+df = scarica_dati_live()
 
 if df is not None:
-    st.success("✅ Database Serie A aggiornato caricato correttamente!")
-    # L'app ora mostra solo chi è presente nel listone attuale
-    st.dataframe(df[['Giocatore', 'Squadra', 'Ruolo']].head(20))
+    st.success(f"✅ Connesso! Analizzando {len(df)} calciatori attivi.")
+    
+    # Barra di ricerca per essere sicuri
+    ricerca = st.text_input("Cerca un giocatore (es. Pulisic, Lautaro...):")
+    if ricerca:
+        risultati = df[df['Giocatore'].str.contains(ricerca, case=False, na=False)]
+        st.table(risultati[['Giocatore', 'Squadra', 'Ruolo', 'MediaVoto']])
+    
+    st.subheader("Top 20 Giocatori del momento")
+    st.dataframe(df.head(20))
 else:
-    st.error("⚠️ Impossibile collegarsi al database live. Riprova tra poco.")
+    st.error("⚠️ Il database esterno non risponde. Riprova tra pochi istanti.")
