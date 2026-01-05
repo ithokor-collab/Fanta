@@ -1,4 +1,5 @@
-import streamlit as st
+
+   import streamlit as st
 import pandas as pd
 
 st.set_page_config(page_title="Fanta-Auto 25/26", page_icon="🤖")
@@ -18,4 +19,4 @@ try:
     st.dataframe(df[['Giocatore', 'Squadra', 'Media']].head(15))
 except:
     st.error("Errore nel caricamento. Verifica la connessione.")
-    
+ 
