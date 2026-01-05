@@ -15,8 +15,8 @@ def carica_dati_certificati():
     # Lista squadre Serie A 2025/2026 per filtrare chi è andato via
     squadre_attuali = [
         'Inter', 'Milan', 'Juventus', 'Napoli', 'Atalanta', 'Lazio', 'Roma', 
-        'Fiorentina', 'Bologna', 'Torino', 'Genoa', 'Parma', 'Como', 'Venezia', 
-        'Udinese', 'Cagliari', 'Lecce', 'Empoli', 'Monza', 'Verona'
+        'Fiorentina', 'Bologna', 'Torino', 'Genoa', 'Parma', 'Como', 'Sassuolo', 
+        'Udinese', 'Cagliari', 'Lecce', 'Cremonese', 'Pisa', 'Verona'
     ]
     
     try:
@@ -32,7 +32,7 @@ def carica_dati_certificati():
     except:
         # Se il link non va, creiamo una tabella d'emergenza con nomi VERI attuali
         return pd.DataFrame({
-            'Giocatore': ['Lautaro Martinez', 'Vlahovic', 'Barella', 'Kvaratskhelia'],
+            'Giocatore': ['Lautaro Martinez', 'Vlahovic', 'Barella', 'Lukaku'],
             'Squadra': ['Inter', 'Juventus', 'Inter', 'Napoli'],
             'Ruolo': ['A', 'A', 'C', 'A'],
             'MediaVoto': [8.5, 8.0, 7.5, 8.2]
