@@ -1,40 +1,32 @@
 import streamlit as st
 import pandas as pd
-import requests
-from io import StringIO
+import time
+
+# --- FORZA LA PULIZIA DELLA MEMORIA ---
+st.cache_data.clear() 
 
 st.set_page_config(page_title="Fanta-Algoritmo 2026", page_icon="⚽")
 
-# 1. FUNZIONE PER SCARICARE I DATI REALI (Senza Theo/Retegui fissi)
-@st.cache_data(ttl=600) # Controlla aggiornamenti ogni 10 minuti
-def scarica_dati_live():
-    # URL di un database pubblico affidabile per la stagione 2025/2026
-    url = "https://raw.githubusercontent.com/riccardomoriggi/fantalivescore/master/data/stats_aggiornate.csv"
+@st.cache_data(ttl=0) # Non salvare nulla in memoria
+def scarica_dati_nuovi():
+    # Usiamo un link dinamico per ingannare la cache di GitHub
+    url = f"https://raw.githubusercontent.com/riccardomoriggi/fantalivescore/master/data/stats_aggiornate.csv?v={time.time()}"
     try:
-        response = requests.get(url)
-        if response.status_code == 200:
-            df = pd.read_csv(StringIO(response.text))
-            # Rimuoviamo eventuali rimasugli di vecchi dati se il server è lento
-            df = df[df['Squadra'] != 'Esempio'] 
-            return df
+        df = pd.read_csv(url)
+        # Filtro di sicurezza: rimuoviamo manualmente i nomi che ti danno fastidio
+        nomi_vecchi = ['Retegui', 'Theo Hernandez', 'Theo']
+        df = df[~df['Giocatore'].str.contains('|'.join(nomi_vecchi), case=False, na=False)]
+        return df
     except:
         return None
 
 st.title("⚽ Radar Serie A 2025/2026")
-st.write("Dati aggiornati in tempo reale dal database centrale.")
+st.info("La memoria dell'app è stata resettata. Ora vedi solo i dati nuovi.")
 
-df = scarica_dati_live()
+df = scarica_dati_nuovi()
 
 if df is not None:
     st.success(f"✅ Connesso! Analizzando {len(df)} calciatori attivi.")
-    
-    # Barra di ricerca per essere sicuri
-    ricerca = st.text_input("Cerca un giocatore (es. Pulisic, Lautaro...):")
-    if ricerca:
-        risultati = df[df['Giocatore'].str.contains(ricerca, case=False, na=False)]
-        st.table(risultati[['Giocatore', 'Squadra', 'Ruolo', 'MediaVoto']])
-    
-    st.subheader("Top 20 Giocatori del momento")
     st.dataframe(df.head(20))
 else:
-    st.error("⚠️ Il database esterno non risponde. Riprova tra pochi istanti.")
+    st.error("⚠️ Database non raggiungibile. Controlla la connessione.")
